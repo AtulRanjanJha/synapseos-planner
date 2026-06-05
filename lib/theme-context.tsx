@@ -71,12 +71,60 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Set font size
     html.style.fontSize = FONT_SIZES[theme.fontSize]
 
-    // Set background color
-    html.style.backgroundColor = theme.backgroundColor
-    bodyEl.style.backgroundColor = theme.backgroundColor
+    // Set background color with !important
+    html.style.setProperty('background-color', theme.backgroundColor, 'important')
+    bodyEl.style.setProperty('background-color', theme.backgroundColor, 'important')
 
-    // Set accent color via CSS variable
-    html.style.setProperty('--color-accent', theme.accentColor)
+    // Create or update dynamic style tag for accent color overrides
+    let styleTag = document.getElementById('theme-style-overrides')
+    if (!styleTag) {
+      styleTag = document.createElement('style')
+      styleTag.id = 'theme-style-overrides'
+      document.head.appendChild(styleTag)
+    }
+
+    // Convert hex to RGB for better compatibility
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '59, 130, 246'
+    }
+
+    const accentRgb = hexToRgb(theme.accentColor)
+    const accentCss = `
+      :root {
+        --color-accent: ${theme.accentColor} !important;
+        --accent-rgb: ${accentRgb};
+      }
+      
+      html, body {
+        background-color: ${theme.backgroundColor} !important;
+      }
+      
+      .bg-accent {
+        background-color: ${theme.accentColor} !important;
+      }
+      
+      .text-accent {
+        color: ${theme.accentColor} !important;
+      }
+      
+      .border-accent {
+        border-color: ${theme.accentColor} !important;
+      }
+      
+      .hover\\:bg-accent:hover {
+        background-color: ${theme.accentColor} !important;
+      }
+      
+      .focus\\:ring-accent:focus {
+        --tw-ring-color: ${theme.accentColor} !important;
+      }
+      
+      button.bg-accent:hover {
+        opacity: 0.9;
+      }
+    `
+    styleTag.textContent = accentCss
 
     // Set mode class
     if (theme.mode === 'dark') {

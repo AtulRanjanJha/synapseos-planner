@@ -27,10 +27,25 @@ export function TasksView() {
       const subtask = {
         id: `subtask-${Date.now()}`,
         title: text,
-        completed: false,
+        description: '',
+        dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+        priority: 'medium' as const,
+        status: 'todo' as const,
+        tags: [],
       }
       addSubTask(activeProjectId, taskId, subtask)
       setSubtaskInputs((prev) => ({ ...prev, [taskId]: '' }))
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'done':
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case 'in-progress':
+        return <AlertCircle className="w-4 h-4 text-orange-600" />
+      default:
+        return <Circle className="w-4 h-4" />
     }
   }
 
@@ -144,32 +159,40 @@ export function TasksView() {
 
                     {expandedTasks.has(task.id) && (
                       <div className="border-t border-border bg-muted/30 p-3 space-y-2">
-                        <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">Subtasks</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase mb-3">Subtasks</div>
                         {task.subtasks && task.subtasks.map((subtask) => (
-                          <div key={subtask.id} className="flex items-center gap-2 text-xs">
-                            <button
-                              onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { completed: !subtask.completed })}
-                              className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              {subtask.completed ? (
-                                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                              ) : (
-                                <Circle className="w-4 h-4" />
-                              )}
-                            </button>
-                            <span className={subtask.completed ? 'line-through text-muted-foreground flex-1' : 'text-foreground flex-1'}>
-                              {subtask.title}
-                            </span>
-                            <button
-                              onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
-                              className="text-muted-foreground hover:text-destructive transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
+                          <div key={subtask.id} className="bg-background rounded border border-border p-2 space-y-1">
+                            <div className="flex items-start gap-2">
+                              <button
+                                onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { status: subtask.status === 'todo' ? 'in-progress' : subtask.status === 'in-progress' ? 'done' : 'todo' })}
+                                className="mt-0.5 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                {getStatusIcon(subtask.status)}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-xs font-medium ${subtask.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                  {subtask.title}
+                                </p>
+                                {subtask.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">{subtask.description}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
+                                className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2 ml-6">
+                              <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${getPriorityBadgeClass(subtask.priority)}`}>
+                                {subtask.priority}
+                              </span>
+                            </div>
                           </div>
                         ))}
                         
-                        <div className="flex gap-1 mt-2 pt-2 border-t border-border">
+                        <div className="flex gap-1 mt-3 pt-2 border-t border-border">
                           <input
                             type="text"
                             placeholder="Add subtask..."

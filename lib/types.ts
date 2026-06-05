@@ -1,7 +1,11 @@
 export interface SubTask {
   id: string
   title: string
-  completed: boolean
+  description?: string
+  dueDate: Date
+  priority: 'low' | 'medium' | 'high'
+  status: 'todo' | 'in-progress' | 'done'
+  tags?: string[]
 }
 
 export interface Task {

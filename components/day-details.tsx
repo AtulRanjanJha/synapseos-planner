@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useProject } from '@/lib/project-context'
-import { X, Plus, Trash2, CheckCircle2, Circle } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle, AlertCircle, Circle } from 'lucide-react'
 
 export function DayDetails() {
   const { projects, activeProjectId, selectedDate, addTask, addNote, setSelectedDate, addSubTask, updateSubTask, deleteSubTask } = useProject()
@@ -109,28 +109,45 @@ export function DayDetails() {
                 </div>
 
                 {expandedTaskId === task.id && task.subtasks && task.subtasks.length > 0 && (
-                  <div className="border-t border-border bg-muted/30 p-2 space-y-1">
+                  <div className="border-t border-border bg-muted/30 p-2 space-y-2">
                     {task.subtasks.map((subtask) => (
-                      <div key={subtask.id} className="flex items-center gap-2 text-xs">
-                        <button
-                          onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { completed: !subtask.completed })}
-                          className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {subtask.completed ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <Circle className="w-4 h-4" />
-                          )}
-                        </button>
-                        <span className={subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>
-                          {subtask.title}
-                        </span>
-                        <button
-                          onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
-                          className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                      <div key={subtask.id} className="bg-background rounded border border-border p-1.5 text-xs">
+                        <div className="flex items-start gap-2">
+                          <button
+                            onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { status: subtask.status === 'todo' ? 'in-progress' : subtask.status === 'in-progress' ? 'done' : 'todo' })}
+                            className="mt-0.5 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {subtask.status === 'done' ? (
+                              <CheckCircle className="w-3 h-3 text-green-600" />
+                            ) : subtask.status === 'in-progress' ? (
+                              <AlertCircle className="w-3 h-3 text-orange-600" />
+                            ) : (
+                              <Circle className="w-3 h-3" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium ${subtask.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                              {subtask.title}
+                            </p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className={`px-1 py-0.5 rounded text-xs font-medium ${
+                                subtask.priority === 'high'
+                                  ? 'bg-red-200 text-red-700'
+                                  : subtask.priority === 'medium'
+                                    ? 'bg-amber-200 text-amber-700'
+                                    : 'bg-green-200 text-green-700'
+                              }`}>
+                                {subtask.priority}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
