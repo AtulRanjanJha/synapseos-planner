@@ -1,3 +1,9 @@
+export interface SubTask {
+  id: string
+  title: string
+  completed: boolean
+}
+
 export interface Task {
   id: string
   title: string
@@ -6,6 +12,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high'
   status: 'todo' | 'in-progress' | 'done'
   tags?: string[]
+  subtasks?: SubTask[]
 }
 
 export interface Milestone {

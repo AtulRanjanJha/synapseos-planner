@@ -1,14 +1,17 @@
 'use client'
 
+import React, { useState } from 'react'
 import { useProject } from '@/lib/project-context'
-import { X } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Circle } from 'lucide-react'
 
 export function DayDetails() {
-  const { projects, activeProjectId, selectedDate, addTask, addNote, setSelectedDate } = useProject()
-  const [showAddTask, setShowAddTask] = React.useState(false)
-  const [showAddNote, setShowAddNote] = React.useState(false)
-  const [taskTitle, setTaskTitle] = React.useState('')
-  const [noteContent, setNoteContent] = React.useState('')
+  const { projects, activeProjectId, selectedDate, addTask, addNote, setSelectedDate, addSubTask, updateSubTask, deleteSubTask } = useProject()
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [showAddNote, setShowAddNote] = useState(false)
+  const [taskTitle, setTaskTitle] = useState('')
+  const [noteContent, setNoteContent] = useState('')
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
+  const [subtaskInputs, setSubtaskInputs] = useState<Record<string, string>>({})
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   if (!activeProject) return null
@@ -84,15 +87,54 @@ export function DayDetails() {
             {tasksForDate.map((task) => (
               <div
                 key={task.id}
-                className={`text-xs p-2 rounded border border-border ${
-                  task.status === 'done'
-                    ? 'bg-green-100 text-green-700'
-                    : task.priority === 'high'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-blue-100 text-blue-700'
-                }`}
+                className="border border-border rounded overflow-hidden"
               >
-                {task.title}
+                <div className="p-2 bg-background hover:bg-muted cursor-pointer transition-colors" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-foreground">{task.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          task.priority === 'high'
+                            ? 'bg-red-200 text-red-700'
+                            : task.priority === 'medium'
+                              ? 'bg-amber-200 text-amber-700'
+                              : 'bg-green-200 text-green-700'
+                        }`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {expandedTaskId === task.id && task.subtasks && task.subtasks.length > 0 && (
+                  <div className="border-t border-border bg-muted/30 p-2 space-y-1">
+                    {task.subtasks.map((subtask) => (
+                      <div key={subtask.id} className="flex items-center gap-2 text-xs">
+                        <button
+                          onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { completed: !subtask.completed })}
+                          className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {subtask.completed ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                        </button>
+                        <span className={subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>
+                          {subtask.title}
+                        </span>
+                        <button
+                          onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
+                          className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -188,4 +230,4 @@ export function DayDetails() {
   )
 }
 
-import React from 'react'
+

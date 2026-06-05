@@ -1,10 +1,38 @@
 'use client'
 
+import { useState } from 'react'
 import { useProject } from '@/lib/project-context'
-import { CheckCircle, Circle, AlertCircle } from 'lucide-react'
+import { CheckCircle, Circle, AlertCircle, ChevronDown, ChevronUp, Plus, Trash2, CheckCircle2 } from 'lucide-react'
 
 export function TasksView() {
-  const { projects, activeProjectId, updateTask } = useProject()
+  const { projects, activeProjectId, updateTask, addSubTask, updateSubTask, deleteSubTask } = useProject()
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+  const [subtaskInputs, setSubtaskInputs] = useState<Record<string, string>>({})
+
+  const toggleTaskExpand = (taskId: string) => {
+    setExpandedTasks((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId)
+      } else {
+        newSet.add(taskId)
+      }
+      return newSet
+    })
+  }
+
+  const handleAddSubtask = (taskId: string) => {
+    const text = subtaskInputs[taskId]?.trim()
+    if (text) {
+      const subtask = {
+        id: `subtask-${Date.now()}`,
+        title: text,
+        completed: false,
+      }
+      addSubTask(activeProjectId, taskId, subtask)
+      setSubtaskInputs((prev) => ({ ...prev, [taskId]: '' }))
+    }
+  }
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   if (!activeProject) return null
@@ -21,16 +49,16 @@ export function TasksView() {
     updateTask(activeProjectId, taskId, { status: nextStatus })
   }
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'text-red-600'
+        return 'bg-red-200 text-red-700'
       case 'medium':
-        return 'text-orange-600'
+        return 'bg-amber-200 text-amber-700'
       case 'low':
-        return 'text-green-600'
+        return 'bg-green-200 text-green-700'
       default:
-        return 'text-gray-600'
+        return 'bg-gray-200 text-gray-700'
     }
   }
 
@@ -52,51 +80,117 @@ export function TasksView() {
                 {tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="p-3 bg-background rounded border border-border hover:border-primary transition-colors group"
+                    className="bg-background rounded border border-border overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
-                      <button
-                        onClick={() => handleToggle(task.id, task.status)}
-                        className="mt-1 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        {task.status === 'done' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        ) : task.status === 'in-progress' ? (
-                          <AlertCircle className="w-5 h-5 text-orange-600" />
-                        ) : (
-                          <Circle className="w-5 h-5" />
-                        )}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm font-medium ${
-                            task.status === 'done' ? 'line-through text-muted-foreground' : ''
-                          }`}
+                    <div className="p-3 hover:bg-muted transition-colors">
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => handleToggle(task.id, task.status)}
+                          className="mt-1 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          {task.title}
-                        </p>
-                        {task.description && (
-                          <p className="text-xs text-muted-foreground mt-1">{task.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`text-xs font-semibold ${getPriorityColor(task.priority)}`}>
-                            {task.priority.toUpperCase()}
-                          </span>
-                          {task.tags && (
-                            <div className="flex gap-1 flex-wrap">
-                              {task.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
+                          {task.status === 'done' ? (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          ) : task.status === 'in-progress' ? (
+                            <AlertCircle className="w-5 h-5 text-orange-600" />
+                          ) : (
+                            <Circle className="w-5 h-5" />
                           )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p
+                              className={`text-sm font-medium ${
+                                task.status === 'done' ? 'line-through text-muted-foreground' : ''
+                              }`}
+                            >
+                              {task.title}
+                            </p>
+                            {task.subtasks && task.subtasks.length > 0 && (
+                              <button
+                                onClick={() => toggleTaskExpand(task.id)}
+                                className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                {expandedTasks.has(task.id) ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <span className={`text-xs px-2 py-0.5 rounded font-medium ${getPriorityBadgeClass(task.priority)}`}>
+                              {task.priority}
+                            </span>
+                            {task.tags && (
+                              <div className="flex gap-1">
+                                {task.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {expandedTasks.has(task.id) && (
+                      <div className="border-t border-border bg-muted/30 p-3 space-y-2">
+                        <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">Subtasks</div>
+                        {task.subtasks && task.subtasks.map((subtask) => (
+                          <div key={subtask.id} className="flex items-center gap-2 text-xs">
+                            <button
+                              onClick={() => updateSubTask(activeProjectId, task.id, subtask.id, { completed: !subtask.completed })}
+                              className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {subtask.completed ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Circle className="w-4 h-4" />
+                              )}
+                            </button>
+                            <span className={subtask.completed ? 'line-through text-muted-foreground flex-1' : 'text-foreground flex-1'}>
+                              {subtask.title}
+                            </span>
+                            <button
+                              onClick={() => deleteSubTask(activeProjectId, task.id, subtask.id)}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        <div className="flex gap-1 mt-2 pt-2 border-t border-border">
+                          <input
+                            type="text"
+                            placeholder="Add subtask..."
+                            value={subtaskInputs[task.id] || ''}
+                            onChange={(e) => setSubtaskInputs((prev) => ({ ...prev, [task.id]: e.target.value }))}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddSubtask(task.id)
+                              }
+                            }}
+                            className="flex-1 text-xs px-2 py-1 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                          />
+                          <button
+                            onClick={() => handleAddSubtask(task.id)}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

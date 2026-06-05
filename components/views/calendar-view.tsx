@@ -135,10 +135,12 @@ export function CalendarView() {
                             key={task.id}
                             className={`text-xs px-1 py-0.5 rounded truncate ${
                               task.status === 'done'
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-green-200 text-green-700'
                                 : task.priority === 'high'
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-blue-100 text-blue-700'
+                                  ? 'bg-red-200 text-red-700'
+                                  : task.priority === 'medium'
+                                    ? 'bg-amber-200 text-amber-700'
+                                    : 'bg-green-200 text-green-700'
                             }`}
                           >
                             {task.title}

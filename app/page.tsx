@@ -4,6 +4,7 @@ import { ProjectProvider, useProject } from '@/lib/project-context'
 import { ProjectTabs } from '@/components/project-tabs'
 import { Sidebar } from '@/components/sidebar'
 import { DayDetails } from '@/components/day-details'
+import { SettingsPanel } from '@/components/settings-panel'
 import { CalendarView } from '@/components/views/calendar-view'
 import { TimelineView } from '@/components/views/timeline-view'
 import { WeeklyView } from '@/components/views/weekly-view'
@@ -46,6 +47,7 @@ function AppContent() {
         </main>
         <DayDetails />
       </div>
+      <SettingsPanel />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback } from 'react'
-import { Project, Task, Milestone, Note, DayEvent, ViewType } from './types'
+import { Project, Task, Milestone, Note, DayEvent, ViewType, SubTask } from './types'
 
 interface ProjectContextType {
   projects: Project[]
@@ -24,6 +24,9 @@ interface ProjectContextType {
   deleteNote: (projectId: string, noteId: string) => void
   addEvent: (projectId: string, event: DayEvent) => void
   deleteEvent: (projectId: string, eventId: string) => void
+  addSubTask: (projectId: string, taskId: string, subtask: SubTask) => void
+  updateSubTask: (projectId: string, taskId: string, subtaskId: string, subtask: Partial<SubTask>) => void
+  deleteSubTask: (projectId: string, taskId: string, subtaskId: string) => void
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined)
@@ -44,6 +47,11 @@ const DEFAULT_PROJECT: Project = {
       priority: 'high',
       status: 'in-progress',
       tags: ['core', 'architecture'],
+      subtasks: [
+        { id: 'sub-1-1', title: 'Design kernel modules', completed: true },
+        { id: 'sub-1-2', title: 'Implement boot loader', completed: true },
+        { id: 'sub-1-3', title: 'Memory management setup', completed: false },
+      ],
     },
     {
       id: 'task-2',
@@ -245,6 +253,65 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     )
   }, [])
 
+  const addSubTask = useCallback((projectId: string, taskId: string, subtask: SubTask) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) =>
+                t.id === taskId
+                  ? { ...t, subtasks: [...(t.subtasks || []), subtask] }
+                  : t
+              ),
+            }
+          : p
+      )
+    )
+  }, [])
+
+  const updateSubTask = useCallback((projectId: string, taskId: string, subtaskId: string, subtaskUpdate: Partial<SubTask>) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) =>
+                t.id === taskId
+                  ? {
+                      ...t,
+                      subtasks: (t.subtasks || []).map((s) =>
+                        s.id === subtaskId ? { ...s, ...subtaskUpdate } : s
+                      ),
+                    }
+                  : t
+              ),
+            }
+          : p
+      )
+    )
+  }, [])
+
+  const deleteSubTask = useCallback((projectId: string, taskId: string, subtaskId: string) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) =>
+                t.id === taskId
+                  ? {
+                      ...t,
+                      subtasks: (t.subtasks || []).filter((s) => s.id !== subtaskId),
+                    }
+                  : t
+              ),
+            }
+          : p
+      )
+    )
+  }, [])
+
   const value: ProjectContextType = {
     projects,
     activeProjectId,
@@ -266,6 +333,9 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     deleteNote,
     addEvent,
     deleteEvent,
+    addSubTask,
+    updateSubTask,
+    deleteSubTask,
   }
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
