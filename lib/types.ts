@@ -5,6 +5,7 @@ export interface SubTask {
   dueDate: Date
   priority: 'low' | 'medium' | 'high'
   status: 'todo' | 'in-progress' | 'done'
+  category?: string
   tags?: string[]
 }
 
@@ -51,6 +52,7 @@ export interface Project {
   description?: string
   color: string
   createdAt: Date
+  categories: string[]
   tasks: Task[]
   milestones: Milestone[]
   notes: Note[]

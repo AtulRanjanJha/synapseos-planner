@@ -129,7 +129,7 @@ export function DayDetails() {
                             <p className={`font-medium ${subtask.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                               {subtask.title}
                             </p>
-                            <div className="flex items-center gap-1 mt-1">
+                            <div className="flex items-center gap-1 mt-1 flex-wrap">
                               <span className={`px-1 py-0.5 rounded text-xs font-medium ${
                                 subtask.priority === 'high'
                                   ? 'bg-red-200 text-red-700'
@@ -139,6 +139,11 @@ export function DayDetails() {
                               }`}>
                                 {subtask.priority}
                               </span>
+                              {subtask.category && (
+                                <span className="px-1 py-0.5 rounded text-xs font-medium bg-blue-200 text-blue-700">
+                                  {subtask.category}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <button

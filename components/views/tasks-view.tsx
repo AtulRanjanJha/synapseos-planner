@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import { useProject } from '@/lib/project-context'
 import { CheckCircle, Circle, AlertCircle, ChevronDown, ChevronUp, Plus, Trash2, CheckCircle2 } from 'lucide-react'
+import { AddSubtaskModal } from '@/components/add-subtask-modal'
 
 export function TasksView() {
   const { projects, activeProjectId, updateTask, addSubTask, updateSubTask, deleteSubTask } = useProject()
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
   const [subtaskInputs, setSubtaskInputs] = useState<Record<string, string>>({})
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
 
   const toggleTaskExpand = (taskId: string) => {
     setExpandedTasks((prev) => {
@@ -47,6 +50,29 @@ export function TasksView() {
       default:
         return <Circle className="w-4 h-4" />
     }
+  }
+
+  const handleAddSubtaskFromModal = (subtaskData: {
+    title: string
+    description: string
+    priority: 'low' | 'medium' | 'high'
+    category: string
+    dueDate: Date
+  }) => {
+    if (!selectedTaskId) return
+
+    const subtask = {
+      id: `subtask-${Date.now()}`,
+      title: subtaskData.title,
+      description: subtaskData.description,
+      dueDate: subtaskData.dueDate,
+      priority: subtaskData.priority,
+      status: 'todo' as const,
+      category: subtaskData.category,
+      tags: [],
+    }
+    addSubTask(activeProjectId, selectedTaskId, subtask)
+    setSelectedTaskId(null)
   }
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
@@ -184,34 +210,29 @@ export function TasksView() {
                                 <Trash2 className="w-3 h-3" />
                               </button>
                             </div>
-                            <div className="flex items-center gap-2 ml-6">
+                            <div className="flex items-center gap-2 ml-6 flex-wrap">
                               <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${getPriorityBadgeClass(subtask.priority)}`}>
                                 {subtask.priority}
                               </span>
+                              {subtask.category && (
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">
+                                  {subtask.category}
+                                </span>
+                              )}
                             </div>
                           </div>
                         ))}
                         
-                        <div className="flex gap-1 mt-3 pt-2 border-t border-border">
-                          <input
-                            type="text"
-                            placeholder="Add subtask..."
-                            value={subtaskInputs[task.id] || ''}
-                            onChange={(e) => setSubtaskInputs((prev) => ({ ...prev, [task.id]: e.target.value }))}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleAddSubtask(task.id)
-                              }
-                            }}
-                            className="flex-1 text-xs px-2 py-1 rounded border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
-                          />
-                          <button
-                            onClick={() => handleAddSubtask(task.id)}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedTaskId(task.id)
+                            setModalOpen(true)
+                          }}
+                          className="mt-3 w-full py-2 px-3 rounded border border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-xs flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Subtask
+                        </button>
                       </div>
                     )}
                   </div>
@@ -221,6 +242,16 @@ export function TasksView() {
           ))}
         </div>
       </div>
+
+      <AddSubtaskModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          setSelectedTaskId(null)
+        }}
+        onAdd={handleAddSubtaskFromModal}
+        categories={activeProject.categories}
+      />
     </div>
   )
 }

@@ -18,6 +18,7 @@ export function ProjectTabs() {
         description: '',
         color: '#3B82F6',
         createdAt: new Date(),
+        categories: ['frontend', 'storage', 'backend', 'testing', 'docs'],
         tasks: [],
         milestones: [],
         notes: [],

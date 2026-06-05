@@ -38,6 +38,7 @@ const DEFAULT_PROJECT: Project = {
   description: 'Next generation operating system',
   color: '#3B82F6',
   createdAt: new Date(),
+  categories: ['frontend', 'storage', 'backend', 'testing', 'docs'],
   tasks: [
     {
       id: 'task-1',
@@ -55,6 +56,7 @@ const DEFAULT_PROJECT: Project = {
           dueDate: new Date(new Date().setDate(new Date().getDate() + 7)),
           priority: 'high',
           status: 'done',
+          category: 'backend',
           tags: ['design'],
         },
         {
@@ -64,6 +66,7 @@ const DEFAULT_PROJECT: Project = {
           dueDate: new Date(new Date().setDate(new Date().getDate() + 10)),
           priority: 'high',
           status: 'done',
+          category: 'backend',
           tags: ['core'],
         },
         {
@@ -73,6 +76,7 @@ const DEFAULT_PROJECT: Project = {
           dueDate: new Date(new Date().setDate(new Date().getDate() + 12)),
           priority: 'high',
           status: 'in-progress',
+          category: 'storage',
           tags: ['memory'],
         },
       ],
