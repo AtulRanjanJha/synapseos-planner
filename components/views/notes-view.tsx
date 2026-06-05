@@ -1,10 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useProject } from '@/lib/project-context'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
+import { AddNoteModal } from '@/components/add-note-modal'
 
 export function NotesView() {
-  const { projects, activeProjectId, deleteNote } = useProject()
+  const { projects, activeProjectId, deleteNote, addNote } = useProject()
+  const [modalOpen, setModalOpen] = useState(false)
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   if (!activeProject) return null
@@ -13,10 +16,33 @@ export function NotesView() {
     (a, b) => b.date.getTime() - a.date.getTime()
   )
 
+  const handleAddNote = (noteData: {
+    title: string
+    content: string
+    tags: string[]
+  }) => {
+    addNote(activeProjectId, {
+      id: `note-${Date.now()}`,
+      title: noteData.title,
+      content: noteData.content,
+      tags: noteData.tags,
+      date: new Date(),
+    })
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h2 className="text-2xl font-bold mb-6">Notes</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Notes</h2>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded bg-accent text-white font-medium hover:opacity-90 transition-opacity text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add Note
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sortedNotes.map((note) => (
             <div
@@ -58,6 +84,12 @@ export function NotesView() {
           ))}
         </div>
       </div>
+
+      <AddNoteModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onAdd={handleAddNote}
+      />
     </div>
   )
 }

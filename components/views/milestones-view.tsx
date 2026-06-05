@@ -1,10 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useProject } from '@/lib/project-context'
-import { Flag, Check } from 'lucide-react'
+import { Flag, Check, Plus } from 'lucide-react'
+import { AddMilestoneModal } from '@/components/add-milestone-modal'
 
 export function MilestonesView() {
-  const { projects, activeProjectId, updateMilestone } = useProject()
+  const { projects, activeProjectId, updateMilestone, addMilestone } = useProject()
+  const [modalOpen, setModalOpen] = useState(false)
 
   const activeProject = projects.find((p) => p.id === activeProjectId)
   if (!activeProject) return null
@@ -20,10 +23,35 @@ export function MilestonesView() {
     }
   }
 
+  const handleAddMilestone = (milestoneData: {
+    title: string
+    description: string
+    targetDate: Date
+    progress: number
+  }) => {
+    addMilestone(activeProjectId, {
+      id: `milestone-${Date.now()}`,
+      title: milestoneData.title,
+      description: milestoneData.description,
+      targetDate: milestoneData.targetDate,
+      progress: milestoneData.progress,
+      completed: false,
+    })
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h2 className="text-2xl font-bold mb-6">Milestones</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Milestones</h2>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded bg-accent text-white font-medium hover:opacity-90 transition-opacity text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add Milestone
+          </button>
+        </div>
         <div className="space-y-4">
           {sortedMilestones.map((milestone) => (
             <div
@@ -80,6 +108,12 @@ export function MilestonesView() {
           ))}
         </div>
       </div>
+
+      <AddMilestoneModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onAdd={handleAddMilestone}
+      />
     </div>
   )
 }
